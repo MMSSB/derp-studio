@@ -29,4 +29,4 @@ Since Derp Studio is a vanilla client-side application, setup is incredibly simp
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/yourusername/derp-studio.git](https://github.com/yourusername/derp-studio.git)
+   git clone [https://github.com/MMSSB/derp-studio.git](https://github.com/MMSSB/derp-studio.git)
