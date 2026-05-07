@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Derp Studio | Monochrome Master</title>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Nunito:wght@900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* Exact Grayscale Palette from Uploaded Image */
+            --c-lightest: #e5e5e5;
+            --c-light: #bcbcbc;
+            --c-mid: #8c8c8c;
+            --c-dark: #595959;
+            --c-darkest: #000000;
+            --c-panel: #111111;
+            --c-card: #222222;
+
+            /* UI Mapping */
+            --bg-page: var(--c-darkest);
+            --bg-panel: var(--c-panel);
+            --bg-card: var(--c-card);
+            --bg-card-hover: var(--c-dark);
+            --primary-accent: var(--c-lightest);
+            --primary-hover: #ffffff;
+            --text-main: var(--c-lightest);
+            --text-muted: var(--c-mid);
+            --border: var(--c-dark);
+            --shadow-glow: 0 0 20px rgba(229, 229, 229, 0.2);
+            
+            --radius-lg: 32px;
+            --radius-md: 16px;
+            --radius-sm: 10px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100dvh; /* Dynamic viewport height for perfect mobile fit */
+            padding: 20px;
+            overflow: hidden;
+            background: radial-gradient(circle at 50% 0%, var(--c-dark), var(--c-darkest) 70%);
+        }
+
+        /* Modern Workspace Layout */
+        .workspace {
+            width: 100%;
+            max-width: 1200px;
+            height: 90vh;
+            background: rgba(17, 17, 17, 0.85);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--c-dark);
+            box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 1);
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* LEFT: Canvas Area */
+        .canvas-section {
+            flex: 1.2;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--c-dark);
+            position: relative;
+            background: var(--c-lightest); /* Default MS Paint Canvas */
+            transition: background-color 0.4s ease;
+        }
+
+        .header {
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0));
+            color: white;
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            z-index: 10;
+        }
+
+        .brand { display: flex; flex-direction: column; }
+        .brand strong { 
+            font-family: 'Nunito', sans-serif; 
+            font-size: 24px; 
+            font-weight: 900; 
+            letter-spacing: 1px; 
+            display: flex; align-items: center; gap: 10px; 
+            color: var(--c-lightest);
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .brand span { font-size: 12px; color: var(--c-light); font-weight: 600; letter-spacing: 2px; text-transform: uppercase;}
+
+        .actions { display: flex; gap: 10px; }
+
+        .btn {
+            width: 44px; height: 44px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--c-dark);
+            background: rgba(34, 34, 34, 0.8);
+            backdrop-filter: blur(5px);
+            color: var(--text-main);
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 22px;
+        }
+        .btn:hover { background: var(--bg-card-hover); transform: translateY(-3px) scale(1.05); }
+        .btn:active { transform: scale(0.95); }
+        .btn.primary { background: var(--text-main); color: var(--c-darkest); border-color: var(--text-main); }
+        .btn.primary:hover { background: var(--primary-hover); box-shadow: var(--shadow-glow); }
+
+        .preview-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 80px 20px 90px 20px;
+            background-image: radial-gradient(rgba(0,0,0,0.15) 2px, transparent 2px);
+            background-size: 20px 20px;
+        }
+
+        .preview-container svg {
+            width: 100%; height: 100%;
+            max-width: 500px; max-height: 500px;
+            filter: drop-shadow(0 25px 35px rgba(0,0,0,0.3));
+            animation: float 5s ease-in-out infinite;
+            transition: all 0.3s;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* Color Controls Bar */
+        .color-controls {
+            position: absolute;
+            bottom: 25px; left: 50%;
+            transform: translateX(-50%);
+            background: rgba(17, 17, 17, 0.9);
+            backdrop-filter: blur(20px);
+            padding: 12px 25px;
+            border-radius: 40px;
+            border: 1px solid var(--c-dark);
+            display: flex;
+            gap: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            z-index: 10;
+        }
+
+        .color-picker-group { display: flex; align-items: center; gap: 6px; flex-direction: column;}
+        .color-picker-group span { font-size: 10px; font-weight: 800; color: var(--c-mid); text-transform: uppercase; letter-spacing: 1px;}
+
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            padding: 0;
+            overflow: hidden;
+            box-shadow: 0 0 0 2px var(--c-dark), 0 4px 6px rgba(0,0,0,0.4);
+            transition: transform 0.2s;
+        }
+        input[type="color"]:hover { transform: scale(1.15); box-shadow: 0 0 0 2px var(--c-lightest); }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: none; border-radius: 50%; }
+
+        /* RIGHT: Tools Area */
+        .tools-section {
+            width: 520px;
+            display: flex;
+            flex-direction: column;
+            background: rgba(17, 17, 17, 0.7);
+            position: relative;
+            z-index: 20;
+        }
+
+        .mobile-drag-handle { display: none; }
+
+        .tabs {
+            display: flex;
+            padding: 25px 20px 0 20px;
+            gap: 10px;
+            overflow-x: auto;
+            border-bottom: 1px solid var(--c-dark);
+            scrollbar-width: none;
+        }
+        .tabs::-webkit-scrollbar { display: none; }
+
+        .tab {
+            background: transparent;
+            border: none;
+            padding: 14px 18px;
+            color: var(--c-mid);
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex; align-items: center; gap: 8px;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .tab i { font-size: 20px; }
+        .tab:hover { color: var(--text-main); background: rgba(255,255,255,0.05); border-radius: 12px 12px 0 0; }
+        .tab.active { color: var(--c-lightest); border-bottom-color: var(--c-lightest); }
+
+        .options-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+        .options-scroll::-webkit-scrollbar { width: 6px; }
+        .options-scroll::-webkit-scrollbar-thumb { background-color: var(--c-dark); border-radius: 10px; }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
+            gap: 15px;
+        }
+
+        .option-card {
+            aspect-ratio: 1;
+            background: var(--bg-card);
+            border: 2px solid transparent;
+            border-radius: var(--radius-md);
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.8) translateY(10px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .option-card svg {
+            width: 125%; height: 125%;
+            pointer-events: none;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+        }
+
+        .option-card:hover {
+            background: var(--bg-card-hover);
+            transform: scale(1.08) translateY(-4px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            border-color: var(--c-mid);
+            z-index: 2;
+        }
+
+        .option-card.active {
+            border-color: var(--c-lightest);
+            background: var(--c-dark);
+            box-shadow: inset 0 0 0 2px var(--c-lightest), var(--shadow-glow);
+        }
+
+        .empty-icon { font-size: 28px; color: var(--c-dark); }
+
+        .mobile-edit-btn { display: none; }
+        .tools-close-btn { display: none; }
+
+        /* Mobile Responsive Bottom Sheet */
+        @media (max-width: 900px) {
+            body { padding: 0; }
+            .workspace { flex-direction: column; height: 100dvh; max-height: none; border-radius: 0; border: none;}
+            
+            .canvas-section { 
+                flex: 1; 
+                border-right: none; 
+                padding-bottom: 60px;
+            }
+            .preview-container { padding: 60px 10px 120px 10px; }
+            
+            .mobile-edit-btn {
+                display: flex;
+                position: absolute;
+                bottom: 95px;
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 14px 28px;
+                border-radius: 30px;
+                background: var(--text-main);
+                color: var(--c-darkest);
+                font-weight: 800;
+                font-size: 16px;
+                align-items: center;
+                gap: 8px;
+                border: none;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+                z-index: 5;
+                transition: all 0.3s;
+                cursor: pointer;
+            }
+            .mobile-edit-btn.hidden {
+                opacity: 0;
+                pointer-events: none;
+                transform: translate(-50%, 20px);
+            }
+
+            /* Make color controls scrollable horizontally on small screens */
+            .color-controls { 
+                bottom: 20px; 
+                width: 95%; 
+                justify-content: flex-start; 
+                padding: 12px 20px; 
+                overflow-x: auto; 
+                scrollbar-width: none; 
+            }
+            .color-controls::-webkit-scrollbar { display: none; }
+
+            .tools-section {
+                position: absolute;
+                bottom: 0; left: 0; right: 0;
+                height: 70dvh;
+                background: rgba(17, 17, 17, 0.95);
+                backdrop-filter: blur(30px);
+                border-radius: 35px 35px 0 0;
+                border-top: 1px solid var(--c-dark);
+                box-shadow: 0 -10px 50px rgba(0,0,0,0.8);
+                transform: translateY(100%); /* Fully Collapsed state */
+                transition: transform 0.4s cubic-bezier(0.3, 1, 0.3, 1);
+                width: 100%;
+                z-index: 30;
+            }
+
+            .tools-section.open {
+                transform: translateY(0);
+            }
+            
+            .tools-close-btn {
+                display: flex;
+                position: absolute;
+                top: 20px;
+                right: 20px;
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                background: rgba(255,255,255,0.1);
+                color: white;
+                border: none;
+                justify-content: center;
+                align-items: center;
+                font-size: 20px;
+                z-index: 40;
+                cursor: pointer;
+            }
+
+            .mobile-drag-handle {
+                display: none; /* Replaced by explicit buttons */
+            }
+
+            .tabs { padding: 0 60px 0 20px; } /* Leave space for close button */
+            .options-grid { grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 12px; }
+            .preview-container svg { animation: none; } /* Save battery on mobile */
+        }
+    </style>
+</head>
+<body>
+
+<div class="workspace">
+    <!-- LEFT: Canvas -->
+    <div class="canvas-section" id="canvas-bg">
+        <div class="header">
+            <div class="brand">
+                <strong><i class="ph-fill ph-paint-brush-broad"></i> DerpStudio</strong>
+                <span>Monochrome Series</span>
+            </div>
+            <div class="actions">
+                <button class="btn" onclick="randomize()" title="Randomize Chaos"><i class="ph-bold ph-dice-five"></i></button>
+                <button class="btn" onclick="clearAvatar()" title="Reset"><i class="ph-bold ph-trash"></i></button>
+                <button class="btn primary" onclick="downloadPNG()" title="Download Masterpiece"><i class="ph-bold ph-download-simple"></i></button>
+            </div>
+        </div>
+        
+        <div class="preview-container" id="main-preview">
+            <!-- Dynamic SVG goes here -->
+        </div>
+
+        <div class="color-controls">
+            <div class="color-picker-group">
+                <span>Canvas</span>
+                <input type="color" id="col-bg" value="#e5e5e5" onchange="updateColors()">
+            </div>
+            <div class="color-picker-group">
+                <span>Skin</span>
+                <input type="color" id="col-skin" value="#000000" onchange="updateColors()">
+            </div>
+            <div class="color-picker-group">
+                <span>Primary</span>
+                <input type="color" id="col-prim" value="#595959" onchange="updateColors()">
+            </div>
+            <div class="color-picker-group">
+                <span>Accent</span>
+                <input type="color" id="col-sec" value="#bcbcbc" onchange="updateColors()">
+            </div>
+        </div>
+
+        <button class="mobile-edit-btn" id="mobile-edit-btn" onclick="openMobileMenu()">
+            <i class="ph-bold ph-pencil-simple"></i> Edit Avatar
+        </button>
+    </div>
+
+    <!-- RIGHT: Tools (Bottom Sheet on Mobile) -->
+    <div class="tools-section" id="tools-panel">
+        <button class="tools-close-btn" onclick="closeMobileMenu()"><i class="ph-bold ph-x"></i></button>
+        <div class="tabs" id="tabs">
+            <button class="tab active" data-tab="head"><i class="ph-bold ph-baseball-cap"></i> Headwear</button>
+            <button class="tab" data-tab="face"><i class="ph-bold ph-smiley"></i> Faces</button>
+            <button class="tab" data-tab="body"><i class="ph-bold ph-t-shirt"></i> Bodies</button>
+            <button class="tab" data-tab="item"><i class="ph-bold ph-magic-wand"></i> Items</button>
+            <button class="tab" data-tab="glasses"><i class="ph-bold ph-sunglasses"></i> Eyewear</button>
+            <button class="tab" data-tab="pet"><i class="ph-bold ph-cat"></i> Pets</button>
+        </div>
+        <div class="options-scroll">
+            <div class="options-grid" id="options-grid">
+                <!-- Options injected here via JS -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 1. CORE ASSET & COLOR SYSTEM ---
+    const STROKE_SKIN = `stroke="[SKIN]" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"`;
+    const THIN_SKIN = `stroke="[SKIN]" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"`;
+    const FILL_W_SKIN = `fill="#fff" stroke="[SKIN]" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"`;
+    
+    // Base Head
+    const BASE_HEAD_SVG = `<path d="M 120 180 C 110 110, 280 110, 270 180 C 260 240, 130 240, 120 180 Z" ${FILL_W_SKIN} />`;
+
+    // 150+ Masterpiece Assets (Massive Expansion)
+    const rawAssets = {
+        face: [
+            { id: 'f1', svg: `<circle cx="165" cy="165" r="5" fill="[SKIN]" /><circle cx="215" cy="170" r="5" fill="[SKIN]" /><path d="M 180 195 Q 195 205 210 195" ${STROKE_SKIN} />` }, 
+            { id: 'f2', svg: `<circle cx="165" cy="165" r="8" fill="[SKIN]" /><circle cx="215" cy="170" r="8" fill="[SKIN]" /><path d="M 180 205 Q 195 195 210 205" ${STROKE_SKIN} />` }, 
+            { id: 'f3', svg: `<path d="M 155 160 L 175 175 M 175 160 L 155 175 M 205 165 L 225 180 M 225 165 L 205 180" ${THIN_SKIN} /><path d="M 180 215 Q 195 205 210 215" ${STROKE_SKIN} />` }, 
+            { id: 'f4', svg: `<path d="M 150 155 L 180 170 M 230 160 L 200 175" ${STROKE_SKIN} /><circle cx="165" cy="175" r="4" fill="[SKIN]" /><circle cx="215" cy="180" r="4" fill="[SKIN]" /><path d="M 185 205 L 205 200" ${STROKE_SKIN} />` }, 
+            { id: 'f5', svg: `<circle cx="165" cy="165" r="5" fill="[SKIN]" /><circle cx="215" cy="170" r="5" fill="[SKIN]" /><circle cx="190" cy="210" r="15" fill="[SKIN]" />` }, 
+            { id: 'f6', svg: `<text x="195" y="195" font-family="Arial" font-size="32" text-anchor="middle" font-weight="bold" fill="[SKIN]">( ͡° ͜ʖ ͡°)</text>` }, 
+            { id: 'f7', svg: `<path d="M 155 165 Q 165 155 175 165 M 205 170 Q 215 160 225 170" ${STROKE_SKIN} /><text x="190" y="205" font-family="Arial" font-size="24" text-anchor="middle" font-weight="bold" fill="[SKIN]">w</text>` }, 
+            { id: 'f8', svg: `<circle cx="165" cy="165" r="5" fill="[SKIN]" /><circle cx="215" cy="170" r="5" fill="[SKIN]" /><path d="M 180 195 L 210 195" ${STROKE_SKIN} /><path d="M 185 195 L 185 220 C 190 230, 205 230, 205 220 L 205 195 Z" fill="[SEC]" stroke="[SKIN]" stroke-width="4" />` }, 
+            { id: 'f9', svg: `<circle cx="190" cy="165" r="25" fill="#fff" stroke="[SKIN]" stroke-width="10"/><circle cx="190" cy="165" r="6" fill="[SKIN]" /><path d="M 175 205 Q 190 215 205 205" ${STROKE_SKIN} />` }, 
+            { id: 'f10', svg: `<path d="M 160 160 L 170 170 L 160 180 M 220 165 L 210 175 L 220 185" ${STROKE_SKIN} /><path d="M 175 210 Q 190 190 205 210" ${STROKE_SKIN} />` }, 
+            { id: 'f11', svg: `<circle cx="165" cy="165" r="5" fill="[SKIN]" /><circle cx="215" cy="170" r="5" fill="[SKIN]" /><path d="M 180 195 L 210 195" ${STROKE_SKIN} /><path d="M 185 195 L 190 215 L 195 195 M 200 195 L 205 215 L 210 195" fill="#fff" stroke="[SKIN]" stroke-width="4" />` }, 
+            { id: 'f12', svg: `<path d="M 155 165 Q 165 175 175 165 M 205 170 Q 215 180 225 170" ${STROKE_SKIN} /><path d="M 180 215 Q 195 195 210 215" ${STROKE_SKIN} /><path d="M 155 165 L 155 180 M 225 170 L 225 185" stroke="[PRIM]" stroke-width="6" stroke-linecap="round" />` }, 
+            { id: 'f13', svg: `<path d="M 160 155 L 170 165 M 170 155 L 160 165 M 210 160 L 220 170 M 220 160 L 210 170" stroke="[SKIN]" stroke-width="6"/><path d="M 175 200 C 185 190, 195 190, 205 200 C 215 210, 195 220, 190 220 C 180 220, 165 210, 175 200 Z" fill="[SEC]" stroke="[SKIN]" stroke-width="4"/>` }, 
+            { id: 'f14', svg: `<path d="M 140 180 C 150 160, 230 160, 240 180" ${STROKE_SKIN}/><circle cx="190" cy="200" r="6" fill="[SEC]"/>` }, 
+            { id: 'f15', svg: `<text x="190" y="180" font-family="Arial" font-size="28" text-anchor="middle" font-weight="bold" fill="[SKIN]">:3</text>` }, 
+            { id: 'f16', svg: `<path d="M 150 160 Q 170 140 190 160 Q 210 140 230 160" ${STROKE_SKIN} /><circle cx="190" cy="190" r="10" fill="[SEC]"/>` }, 
+            { id: 'f17', svg: `<path d="M 150 180 L 230 180 M 160 170 L 160 190 M 190 170 L 190 190 M 220 170 L 220 190" ${STROKE_SKIN} stroke-width="6"/>` }, 
+            { id: 'f18', svg: `<circle cx="165" cy="165" r="5" fill="[SKIN]" /><circle cx="215" cy="170" r="5" fill="[SKIN]" /><path d="M 160 210 C 170 230, 210 230, 220 210 Z" fill="[SEC]" stroke="[SKIN]" stroke-width="4"/>` }, 
+            { id: 'f19', svg: `<path d="M 140 140 Q 165 170 190 140 Q 215 170 240 140 L 230 220 L 150 220 Z" fill="[SEC]" stroke="[SKIN]" stroke-width="6"/><rect x="170" y="170" width="10" height="30" fill="[SKIN]"/><rect x="200" y="170" width="10" height="30" fill="[SKIN]"/>` }, // Cyborg Jaw
+            { id: 'f20', svg: `<circle cx="190" cy="180" r="30" fill="none" stroke="[SKIN]" stroke-width="8" stroke-dasharray="10 10"/>` }, // Loading
+            { id: 'f21', svg: `<path d="M 150 150 L 180 180 M 180 150 L 150 180 M 200 150 L 230 180 M 230 150 L 200 180" ${THIN_SKIN}/><path d="M 170 210 Q 190 230 210 210" ${STROKE_SKIN}/>` }, // X Eyes
+            { id: 'f22', svg: `<rect x="140" y="150" width="40" height="20" fill="[SKIN]"/><rect x="200" y="150" width="40" height="20" fill="[SKIN]"/><rect x="170" y="190" width="40" height="10" fill="[SKIN]"/>` }, // Minecraft Face
+            { id: 'f23', svg: `<path d="M 140 160 Q 190 200 240 160 Q 190 120 140 160" fill="[SEC]" stroke="[SKIN]" stroke-width="6"/><circle cx="190" cy="160" r="10" fill="[SKIN]"/><path d="M 170 200 L 210 200" ${STROKE_SKIN}/>` }, // Eye of Sauron
+            { id: 'f24', svg: `<path d="M 130 160 C 130 220, 250 220, 250 160 Z" fill="#fff" stroke="[SKIN]" stroke-width="6"/><path d="M 160 160 L 160 200 M 190 160 L 190 210 M 220 160 L 220 200" ${STROKE_SKIN} stroke-width="6"/>` }, // Skull Teeth
+            { id: 'f25', svg: `` } // No Face
+        ],
+        head: [
+            { id: 'h0', svg: `` }, 
+            { id: 'h1', svg: `<path d="M 130 140 L 140 100 L 160 120 L 180 90 L 200 130 L 220 95 L 240 140 L 260 110 L 265 150" ${STROKE_SKIN} />` }, 
+            { id: 'h2', svg: `<path d="M 110 130 L 280 125" ${STROKE_SKIN} /><path d="M 150 130 L 155 50 L 235 55 L 240 128 Z" fill="[PRIM]" stroke="[SKIN]" stroke-linejoin="round" stroke-width="10" />` }, 
+            { id: 'h3', svg: `<path d="M 120 140 C 120 80, 260 80, 260 140 Z" fill="[PRIM]" stroke="[SKIN]" stroke-width="10" stroke-linejoin="round" /><path d="M 100 140 L 220 140" ${STROKE_SKIN} />` }, 
+            { id: 'h4', svg: `<path d="M 120 150 L 70 190 M 270 150 L 320 180" ${STROKE_SKIN} stroke-width="16" />` }, 
+            { id: 'h5', svg: `<path d="M 140 120 C 140 60, 240 60, 240 120 Z" fill="[PRIM]" stroke="[SKIN]" stroke-width="10" stroke-linejoin="round" /><path d="M 140 80 L 130 30 L 170 65 M 240 80 L 250 30 L 210 65" fill="[PRIM]" stroke="[SKIN]" stroke-width="10" stroke-linejoin="round" /><circle cx="170" cy="90" r="4" fill="#000"/><circle cx="210" cy="90" r="4" fill="#000"/><path d="M 185 100 L 195 105 L 205 100" stroke="#000" stroke-width="4" fill="none" /><path d="M 240 100 Q 280 100 290 60" stroke="[SKIN]" stroke-width="6" fill="none" />` }, 
+            { id: 'h6', svg: `<path d="M 140 120 L 150 60 L 170 90 L 190 50 L 210 90 L 230 60 L 240 120 Z" fill="[SEC]" stroke="[SKIN]" stroke-width="10" stroke-linejoin="round" />` }, 
+            { id: 'h7', svg: `<path d="M 110 130 C 80 100, 150 40, 190 110 C 230 40, 300 100, 270 130" fill="[PRIM]" stroke="[SKIN]" stroke-width="10" />` }, 
+            { id: 'h8', svg: `<path d="M 110 150 C 90 220, 90 280, 130 300 M 270 150 C 290 220, 290 280, 250 300" stroke="[PRIM]" stroke-width="25" fill="none" stroke-linecap="round" />` }, 
+            { id: 'h9', svg: `<ellipse cx="190" cy="70" rx="60" ry="20" stroke="[SEC]" stroke-width="10" fill="none" />` }, 
+            { id: 'h10', svg: `<path d="M 150 120 L 120 70 M 230 120 L 260 70" ${STROKE_SKIN} /><circle cx="120" cy="70" r="10" fill="[SEC]" stroke="[SKIN]" stroke-width="6"/><circle cx="260" cy="70" r="10" fill="[SEC]" stroke="[SKIN]" stroke-width="6"/>` }, 
+            { id: 'h11', svg: `<path d="M 160 120 L 160 50 L 180 30 L 200 50 L 200 120" fill="[SEC]" stroke="[SKIN]" stroke-width="10" stroke-linejoin="round"/><path d="M 180 30 L 240 40" ${STROKE_SKIN} />` }, 
+            { id: 'h12', svg: `<path d="M 130 130 L 110 70 L 140 90 L 150 30 L 180 80 L 210 20 L 230 80 L 260 40 L 260 130 Z" fill="[SEC]" stroke="[SKIN]" stroke-width="10" stroke-linejoin="round" />` }, 
+            { id: 'h13', svg: `<path d="M 130 140 C 90 140, 90 60, 140 80 C 160 30, 230 30, 240 80 C 290 60, 290 140, 260 140 Z" fill="[PRIM]" stroke="[SKIN]" stroke-width="10" stroke-linejoin="round" />` }, 
+            { id: 'h14', svg: `<path d="M 100 140 L 280 140 C 280 80, 100 80, 100 140 Z" fill="[PRIM]" stroke="[SKIN]" stroke-width="8"/><ellipse cx="190" cy="140" rx="120" ry="20" fill="[SEC]" stroke="[SKIN]" stroke-width="8"/>` }, 
+            { id: 'h15', svg: `<path d="M 130 140 C 130 80, 250 80, 250 140 Z" fill="[PRIM]" stroke="[SKIN]" stroke-width="10"/><path d="M 130 120 L 90 50 L 150 90 M 250 120 L 290 50 L 230 90" fill="#fff" stroke="[SKIN]" stroke-width="8"/>` }, 
+            { id: 'h16', svg: `<path d="M 140 140 L 130 50 C 130 20, 250 20, 250 50 L 240 140 Z" fill="#fff" stroke="[SKIN]" stroke-width="8"/><path d="M 120 70 C 100 40, 150 10, 190 30 C 230 10, 280 40, 260 70 C 280 100, 240 110, 220 90 C 200 110, 160 110, 140 90 C 120 110, 80 100, 100 70 Z" fill="#fff" stroke="[SKIN]" stroke-width="8"/>` }, 
+            { id: 'h17', svg: `<path d="M 120 140 L 190 20 L 260 140 Z" fill="[PRIM]" stroke="[SKIN]" stroke-width="8"/><ellipse cx="190" cy="140" rx="90" ry="20" fill="[PRIM]" stroke="[SKIN]" stroke-width="8"/>` }, 
+            { id: 'h18', svg: `<path d="M 130 130 L 140 90 L 160 80 L 220 80 L 240 90 L 250 130 Z" fill="[PRIM]" stroke="[SKIN]" stroke-width="8"/><rect x="150" y="80" width="80" height="30" fill="[SEC]" stroke="[SKIN]" stroke-width="6"/>` }, 
+            { id: 'h19', svg: `<path d="M 110 120 L 150 50 L 190 100 L 230 50 L 270 120" fill="[SEC]" stroke="[SKIN]" stroke-width="8" stroke-linejoin="round"/>` }, 
+            { id: 'h20', svg: `<path d="M 130 140 L 120 90 L 150 40 L 230 40 L 260 90 L 250 140 Z" fill="[PRIM]" stroke="[SKIN]" stroke-width="8"/><path d="M 120 90 C 150 120, 230 120, 260 90" stroke="[SEC]" stroke-width="15" fill="none"/>` }, 
+            { id: 'h21', svg: `<path d="M 130 130 L 100 50 L 150 100 M 250 130 L 280 50 L 230 100" fill="[PRIM]" stroke="[SKIN]" stroke-width="10" stroke-linejoin="round"/>` }, 
+            { id: 'h22', svg: `<path d="M 130 130 C 100 40, 160 20, 150 100 M 250 130 C 280 40, 220 20, 230 100" fill="[SEC]" stroke="[SKIN]" stroke-width="10" stroke-linejoin="round"/>` },
+            { id: 'h23', svg: `<path d="M 190 40 C 240 40, 270 90, 260 140 L 120 140 C 110 90, 140 40, 190 40 Z" fill="[PRIM]" stroke="[SKIN]" stroke-width="10"/><path d="M 190 40 L 190 0 M 170 10 L 210 10 M 170 20 L 210 20" ${THIN_SKIN}/>` }, // Space Helmet
+            { id: 'h24', svg: `<path d="M 90 130 L 290 130" ${STROKE_SKIN} stroke-width="16"/><circle cx="190" cy="130" r="15" fill="[SEC]" stroke="[SKIN]" stroke-width="6"/>` }, // Ninja Headband
+            { id: 'h25', svg: `<path d="M 140 140 L 120 80 L 190 40 L 260 80 L 240 140 Z" fill="none" stroke="[SEC]" stroke-width="10"/><circle cx="190" cy="40" r="8" fill="[PRIM]"/>` } // Tiara
+        ],
+        body: [
+            { id: 'b0', svg: `<path d="M 195 210 L 205 380" ${STROKE_SKIN} /><path d="M 200 270 L 110 290 M 200 270 L 290 320" ${STROKE_SKIN} />` }, 
+            { id: 'b1', svg: `<path d="M 195 210 L 205 380" ${STROKE_SKIN} /><path d="M 200 270 L 110 200 M 200 270 L 290 200" ${STROKE_SKIN} />` }, 
+            { id: 'b2', svg: `<path d="M 195 210 L 205 380" ${STROKE_SKIN} /><path d="M 200 270 L 140 230 L 120 280 M 200 270 L 260 230 L 280 280" ${STROKE_SKIN} stroke-linejoin="round"/>` }, 
+            { id: 'b3', svg: `<path d="M 195 210 L 205 300 L 130 380 M 205 300 L 280 380" ${STROKE_SKIN} /><path d="M 200 250 L 110 270 M 200 250 L 290 270" ${STROKE_SKIN} />` }, 
+            { id: 'b4', svg: `<path d="M 195 210 L 205 380" ${STROKE_SKIN} /><path d="M 200 270 L 110 290 M 200 270 L 290 320" ${STROKE_SKIN} /><path d="M 200 240 L 190 300 L 200 330 L 210 300 Z" fill="[SEC]" stroke="[SKIN]" stroke-width="6" stroke-linejoin="round" />` }, 
+            { id: 'b5', svg: `<path d="M 150 270 L 90 290 M 250 270 L 310 320" ${STROKE_SKIN} /><path d="M 200 340 L 205 390" ${STROKE_SKIN} /><rect x="140" y="240" width="120" height="100" fill="[PRIM]" stroke="[SKIN]" stroke-width="10" stroke-linejoin="round" />` }, 
+            { id: 'b6', svg: `<path d="M 195 210 L 205 380" ${STROKE_SKIN} /><path d="M 200 270 L 130 220 M 200 270 L 290 320" ${STROKE_SKIN} /><path d="M 110 240 L 150 200 M 130 220 L 60 150" stroke="[PRIM]" stroke-width="10" fill="none" stroke-linecap="round"/>` }, 
+            { id: 'b7', svg: `<path d="M 195 210 L 205 380" ${STROKE_SKIN} /><path d="M 200 270 Q 150 220 100 260 Q 130 290 200 270" fill="[SKIN]" stroke="[SKIN]" stroke-width="10"/><path d="M 200 270 Q 250 220 300 260 Q 270 290 200 270" fill="[SKIN]" stroke="[SKIN]" stroke-width="10"/>` }, 
+            { id: 'b8', svg: `<path d="M 150 270 L 110 290 M 250 270 L 290 320" ${STROKE_SKIN} /><circle cx="200" cy="300" r="70" fill="[PRIM]" stroke="[SKIN]" stroke-width="10"/>` }, 
+            { id: 'b9', svg: `<path d="M 195 210 L 205 300" ${STROKE_SKIN} /><path d="M 200 270 L 110 290 M 200 270 L 290 320" ${STROKE_SKIN} /><path d="M 180 300 C 150 360, 100 380, 100 380 L 150 400 L 130 420 C 130 420, 200 400, 230 300 Z" fill="[PRIM]" stroke="[SKIN]" stroke-width="10" stroke-linejoin="round" />` }, 
+            { id: 'b10', svg: `<path d="M 195 210 L 205 380" ${STROKE_SKIN} /><path d="M 200 240 L 180 250 L 185 260 M 200 240 L 220 250 L 215 260" ${STROKE_SKIN} stroke-width="8" /><path d="M 200 320 C 130 360, 60 380, 40 400 C 110 390, 180 360, 205 380 Z" fill="[PRIM]" stroke="[SKIN]" stroke-width="10" stroke-linejoin="round" />` }, 
+            { id: 'b11', svg: `<path d="M 195 210 L 205 380" ${STROKE_SKIN} /><path d="M 200 270 L 110 290 M 200 270 L 290 320" ${STROKE_SKIN} /><path d="M 150 230 C 100 280, 120 400, 280 380 C 270 240, 200 230, 150 230 Z" fill="[SEC]" stroke="[SKIN]" stroke-width="10" stroke-linejoin="round" opacity="0.8" />` }, 
+            { id: 'b12', svg: `<path d="M 195 210 L 205 280" ${STROKE_SKIN} /><path d="M 200 240 L 110 260 M 200 240 L 290 290" ${STROKE_SKIN} /><path d="M 120 280 C 120 380, 280 380, 280 280 Z" fill="[PRIM]" stroke="[SKIN]" stroke-width="10" stroke-linejoin="round" /><line x1="160" y1="280" x2="160" y2="350" stroke="[SKIN]" stroke-width="6"/><line x1="200" y1="280" x2="200" y2="360" stroke="[SKIN]" stroke-width="6"/><line x1="240" y1="280" x2="240" y2="350" stroke="[SKIN]" stroke-width="6"/>` }, 
+            { id: 'b13', svg: `<path d="M 195 210 L 205 300" ${STROKE_SKIN} /><path d="M 200 270 L 110 290 M 200 270 L 290 320" ${STROKE_SKIN} /><ellipse cx="205" cy="350" rx="80" ry="20" fill="[PRIM]" stroke="[SKIN]" stroke-width="10" /><path d="M 170 340 L 150 300 L 190 300 Z" fill="[SEC]" stroke="[SKIN]" stroke-width="6" /><path d="M 240 340 L 220 300 L 260 300 Z" fill="[SEC]" stroke="[SKIN]" stroke-width="6" />` }, 
+            { id: 'b14', svg: `<path d="M 150 270 L 110 290 M 250 270 L 290 320" ${STROKE_SKIN} /><path d="M 140 240 C 120 300, 100 400, 140 400 C 160 400, 180 380, 200 400 C 220 420, 250 400, 270 400 C 300 400, 290 300, 260 240 Z" fill="#fff" stroke="[SKIN]" stroke-width="8" opacity="0.9"/>` }, 
+            { id: 'b15', svg: `<path d="M 150 270 L 90 290 M 250 270 L 310 320" ${STROKE_SKIN} /><path d="M 200 370 L 205 420" ${STROKE_SKIN} /><rect x="160" y="200" width="80" height="160" rx="40" fill="[PRIM]" stroke="[SKIN]" stroke-width="10"/><path d="M 180 220 C 190 250, 170 290, 190 320 C 210 350, 200 330, 220 350" stroke="[SEC]" stroke-width="8" fill="none"/>` }, 
+            { id: 'b16', svg: `<path d="M 195 210 L 200 360" stroke="[SKIN]" stroke-width="6" fill="none"/><path d="M 200 240 L 110 260 M 200 240 L 290 290" stroke="[SKIN]" stroke-width="6" fill="none"/><line x1="170" y1="260" x2="230" y2="260" stroke="[SKIN]" stroke-width="6"/><line x1="170" y1="290" x2="230" y2="290" stroke="[SKIN]" stroke-width="6"/><line x1="170" y1="320" x2="230" y2="320" stroke="[SKIN]" stroke-width="6"/>` }, 
+            { id: 'b17', svg: `<path d="M 150 250 L 100 230 M 250 250 L 300 270" stroke="[SEC]" stroke-width="8" stroke-linecap="round"/><circle cx="200" cy="270" r="50" fill="#fff" stroke="[SKIN]" stroke-width="8"/><circle cx="200" cy="380" r="70" fill="#fff" stroke="[SKIN]" stroke-width="8"/><circle cx="200" cy="250" r="5" fill="#000"/><circle cx="200" cy="280" r="5" fill="#000"/><circle cx="200" cy="340" r="6" fill="#000"/>` }, 
+            { id: 'b18', svg: `<path d="M 200 210 L 200 400" stroke="[PRIM]" stroke-width="40" stroke-linecap="round"/><path d="M 200 280 L 140 280 L 140 220" stroke="[PRIM]" stroke-width="30" stroke-linecap="round" fill="none"/><path d="M 200 320 L 260 320 L 260 250" stroke="[PRIM]" stroke-width="30" stroke-linecap="round" fill="none"/>` }, 
+            { id: 'b19', svg: `<path d="M 195 210 L 205 380" ${STROKE_SKIN} /><path d="M 200 270 L 110 290 M 200 270 L 290 320" ${STROKE_SKIN} /><rect x="160" y="220" width="80" height="100" fill="[PRIM]" stroke="[SKIN]" stroke-width="6"/><rect x="175" y="230" width="50" height="80" fill="[SEC]"/>` }, 
+            { id: 'b20', svg: `<path d="M 195 210 L 205 380" ${STROKE_SKIN} /><path d="M 200 270 L 110 290 M 200 270 L 290 320" ${STROKE_SKIN} /><path d="M 160 210 L 240 210 L 280 300 L 120 300 Z" fill="[SEC]" stroke="[SKIN]" stroke-width="8" stroke-linejoin="round"/>` },
+            { id: 'b21', svg: `<path d="M 195 210 L 205 380" ${STROKE_SKIN}/><path d="M 200 270 L 110 290 M 200 270 L 290 320" ${STROKE_SKIN}/><path d="M 150 250 C 130 200, 270 200, 250 250 L 280 400 L 120 400 Z" fill="[PRIM]" stroke="[SKIN]" stroke-width="8" opacity="0.9"/>` }, // Cloak
+            { id: 'b22', svg: `<path d="M 195 210 L 205 380" ${STROKE_SKIN}/><path d="M 200 270 L 110 290 M 200 270 L 290 320" ${STROKE_SKIN}/><path d="M 200 250 Q 100 200 50 300 Q 150 350 200 280" fill="[SEC]" stroke="[SKIN]" stroke-width="6"/><path d="M 200 250 Q 300 200 350 300 Q 250 350 200 280" fill="[SEC]" stroke="[SKIN]" stroke-width="6"/>` } // Wings
+        ],
+        item: [
+            { id: 'i0', svg: `` }, 
+            { id: 'i1', svg: `<path d="M 150 210 C 180 180, 210 180, 240 210 C 220 225, 170 225, 150 210 Z" fill="[SEC]" stroke="[SKIN]" stroke-width="4"/>` }, 
+            { id: 'i2', svg: `<circle cx="195" cy="185" r="15" fill="[SEC]" stroke="[SKIN]" stroke-width="8" />` }, 
+            { id: 'i3', svg: `<path d="M 290 320 L 320 200" ${THIN_SKIN} /><circle cx="320" cy="170" r="35" fill="[PRIM]" stroke="[SKIN]" stroke-width="8" /><path d="M 315 205 L 325 205 L 320 215 Z" fill="[PRIM]" />` }, 
+            { id: 'i4', svg: `<path d="M 110 290 L 50 220" ${STROKE_SKIN} /><path d="M 50 220 L 40 180 L 60 170 Z" fill="[SEC]" stroke="[SKIN]" stroke-width="6" stroke-linejoin="round" />` }, 
+            { id: 'i5', svg: `<path d="M 100 200 L 150 280 L 80 260 Z" fill="[PRIM]" stroke="[SKIN]" stroke-width="8" stroke-linejoin="round" /><circle cx="110" cy="230" r="6" fill="[SEC]" /><circle cx="130" cy="250" r="6" fill="[SEC]" /><circle cx="100" cy="250" r="6" fill="[SEC]" />` }, 
+            { id: 'i6', svg: `<rect x="70" y="260" width="50" height="60" rx="5" fill="[PRIM]" stroke="[SKIN]" stroke-width="8" /><path d="M 120 270 C 140 270, 140 310, 120 310" stroke="[SKIN]" stroke-width="8" fill="none" />` }, 
+            { id: 'i7', svg: `<path d="M 110 290 L 60 200" stroke="[SKIN]" stroke-width="15" stroke-linecap="round" /><rect x="40" y="180" width="40" height="25" fill="[SEC]" stroke="[SKIN]" stroke-width="6" />` }, 
+            { id: 'i8', svg: `<rect x="60" y="270" width="40" height="70" rx="4" fill="[SKIN]" stroke="[SKIN]" stroke-width="6" /><rect x="65" y="275" width="30" height="50" fill="[PRIM]" />` }, 
+            { id: 'i9', svg: `<path d="M 110 290 L 50 270 M 50 270 L 40 230 L 60 230 Z" fill="[SEC]" stroke="[SKIN]" stroke-width="8" stroke-linejoin="round" /><rect x="25" y="270" width="50" height="20" fill="[SEC]" stroke="[SKIN]" stroke-width="8" />` }, 
+            { id: 'i10', svg: `<rect x="70" y="250" width="40" height="50" rx="5" fill="#fff" stroke="[SKIN]" stroke-width="8" /><path d="M 70 275 L 110 275" stroke="[SKIN]" stroke-width="4" stroke-dasharray="4 4" /><path d="M 70 250 L 50 350" fill="#fff" stroke="[SKIN]" stroke-width="8" stroke-linejoin="round" />` }, 
+            { id: 'i11', svg: `<path d="M 290 320 L 350 250" stroke="[SEC]" stroke-width="12" stroke-linecap="round"/><path d="M 340 240 L 360 260 L 350 230 Z" fill="[PRIM]" stroke="[SKIN]" stroke-width="4"/>` }, 
+            { id: 'i12', svg: `<circle cx="80" cy="250" r="40" fill="[PRIM]" stroke="[SKIN]" stroke-width="10"/><circle cx="80" cy="250" r="20" fill="[SEC]" stroke="[SKIN]" stroke-width="6"/>` }, 
+            { id: 'i13', svg: `<rect x="40" y="240" width="80" height="50" rx="10" fill="[PRIM]" stroke="[SKIN]" stroke-width="8"/><circle cx="60" cy="265" r="15" fill="[SEC]" stroke="[SKIN]" stroke-width="4"/><circle cx="100" cy="265" r="10" fill="[SEC]" stroke="[SKIN]" stroke-width="4"/>` }, 
+            { id: 'i14', svg: `<path d="M 70 250 L 70 300 C 70 320, 110 320, 110 300 L 110 250 Z" fill="[SEC]" stroke="[SKIN]" stroke-width="8"/><rect x="80" y="230" width="20" height="20" fill="[PRIM]" stroke="[SKIN]" stroke-width="6"/>` }, 
+            { id: 'i15', svg: `<path d="M 290 320 L 330 250 M 310 280 L 370 260" stroke="[SKIN]" stroke-width="8" stroke-linecap="round"/>` }, 
+            { id: 'i16', svg: `<ellipse cx="80" cy="230" rx="20" ry="30" fill="[PRIM]" stroke="[SKIN]" stroke-width="6"/><path d="M 80 260 L 80 300 M 70 280 L 90 280" stroke="[SKIN]" stroke-width="6" fill="none"/>` }, 
+            { id: 'i17', svg: `<path d="M 290 320 L 360 280" stroke="[SKIN]" stroke-width="10" stroke-linecap="round"/><path d="M 360 280 L 340 240 L 380 260 Z" fill="[SEC]" stroke="[SKIN]" stroke-width="6"/>` }, 
+            { id: 'i18', svg: `<path d="M 290 320 L 350 250" stroke="[SEC]" stroke-width="15" stroke-linecap="round"/><path d="M 330 270 L 350 290" stroke="[SEC]" stroke-width="15" stroke-linecap="round"/><path d="M 350 250 L 370 270" stroke="[SEC]" stroke-width="15" stroke-linecap="round"/>` },
+            { id: 'i19', svg: `<path d="M 80 280 Q 50 200 110 200 Q 150 250 80 280" fill="[PRIM]" stroke="[SKIN]" stroke-width="8"/><path d="M 80 280 L 70 320" stroke="[SKIN]" stroke-width="8"/>` }, // Guitar
+            { id: 'i20', svg: `<path d="M 110 290 L 50 230 M 70 210 L 30 250 M 50 230 L 70 210" stroke="[SKIN]" stroke-width="8" fill="none"/><circle cx="50" cy="230" r="15" fill="[SEC]"/>` } // Lollipop
+        ],
+        glasses: [
+            { id: 'g0', svg: `` }, 
+            { id: 'g1', svg: `<path d="M 140 160 L 190 165 L 180 185 L 150 180 Z" fill="[SKIN]" stroke="[SKIN]" stroke-width="6" stroke-linejoin="round" /><path d="M 200 165 L 250 170 L 240 190 L 210 185 Z" fill="[SKIN]" stroke="[SKIN]" stroke-width="6" stroke-linejoin="round" /><path d="M 190 165 L 200 165" ${STROKE_SKIN} stroke-width="6" />` }, 
+            { id: 'g2', svg: `<rect x="140" y="150" width="40" height="30" fill="none" stroke="[PRIM]" stroke-width="8" /><circle cx="230" cy="170" r="18" fill="none" stroke="[PRIM]" stroke-width="8" /><path d="M 180 165 L 212 170" stroke="[PRIM]" stroke-width="6" />` }, 
+            { id: 'g3', svg: `<rect x="135" y="155" width="120" height="25" fill="[SKIN]" /><rect x="145" y="180" width="15" height="10" fill="[SKIN]" /><rect x="175" y="180" width="15" height="10" fill="[SKIN]" /><rect x="205" y="180" width="15" height="10" fill="[SKIN]" /><rect x="235" y="180" width="15" height="10" fill="[SKIN]" />` }, 
+            { id: 'g4', svg: `<circle cx="165" cy="165" r="20" fill="none" stroke="[SKIN]" stroke-width="6" /><circle cx="215" cy="170" r="20" fill="none" stroke="[SKIN]" stroke-width="6" /><path d="M 185 165 L 195 170" stroke="[SKIN]" stroke-width="12" /><path d="M 190 150 L 190 185" stroke="#fff" stroke-width="4" />` }, 
+            { id: 'g5', svg: `<path d="M 140 160 Q 165 140 190 160 Q 165 190 140 160 Z" fill="[SEC]" stroke="[SKIN]" stroke-width="6" /><path d="M 200 165 Q 225 145 250 165 Q 225 195 200 165 Z" fill="[SEC]" stroke="[SKIN]" stroke-width="6" /><path d="M 190 160 L 200 165" stroke="[SKIN]" stroke-width="6" />` }, 
+            { id: 'g6', svg: `<path d="M 140 150 C 140 180, 190 180, 190 150 Z" fill="[SKIN]" stroke="[SKIN]" stroke-width="6" /><path d="M 110 140 L 220 160" stroke="[SKIN]" stroke-width="4" fill="none" />` }, 
+            { id: 'g7', svg: `<path d="M 165 165 L 50 400 M 215 170 L 350 400" stroke="[SEC]" stroke-width="15" stroke-linecap="round" fill="none" opacity="0.8"/>` }, 
+            { id: 'g8', svg: `<rect x="130" y="145" width="130" height="50" rx="10" fill="[PRIM]" stroke="[SKIN]" stroke-width="8" /><path d="M 120 170 L 130 170 M 260 170 L 270 170" stroke="[SKIN]" stroke-width="12" />` }, 
+            { id: 'g9', svg: `<circle cx="165" cy="165" r="18" fill="#fff" stroke="[SKIN]" stroke-width="6"/><circle cx="170" cy="170" r="6" fill="[SKIN]"/><circle cx="215" cy="170" r="18" fill="#fff" stroke="[SKIN]" stroke-width="6"/><circle cx="210" cy="165" r="6" fill="[SKIN]"/>` },
+            { id: 'g10', svg: `<rect x="140" y="150" width="40" height="30" fill="[PRIM]" opacity="0.8" stroke="[SKIN]" stroke-width="6" /><rect x="200" y="155" width="40" height="30" fill="[SEC]" opacity="0.8" stroke="[SKIN]" stroke-width="6" /><path d="M 180 165 L 200 170" stroke="[SKIN]" stroke-width="6" />` }, 
+            { id: 'g11', svg: `<circle cx="225" cy="170" r="22" fill="none" stroke="[SEC]" stroke-width="6" /><path d="M 225 192 L 225 240 L 240 250" stroke="[SEC]" stroke-width="4" fill="none"/>` }, 
+            { id: 'g12', svg: `<path d="M 120 160 L 280 170" stroke="[PRIM]" stroke-width="25" stroke-linecap="round"/><path d="M 140 160 L 260 170" stroke="[SKIN]" stroke-width="6" stroke-linecap="round"/>` }, 
+            { id: 'g13', svg: `<path d="M 140 160 L 190 140 L 180 185 Z" fill="[SEC]" stroke="[SKIN]" stroke-width="6"/><path d="M 200 145 L 250 170 L 240 190 Z" fill="[SEC]" stroke="[SKIN]" stroke-width="6"/><path d="M 180 165 L 200 165" stroke="[SKIN]" stroke-width="6"/>` }
+        ],
+        pet: [
+            { id: 'p0', svg: `` }, 
+            { id: 'p1', svg: `<g transform="translate(-50, 20)"><circle cx="100" cy="350" r="25" fill="[PRIM]" stroke="[SKIN]" stroke-width="8"/><circle cx="90" cy="345" r="3" fill="#000"/><circle cx="110" cy="345" r="3" fill="#000"/><path d="M 95 360 Q 100 365 105 360" stroke="#000" stroke-width="4" fill="none"/><path d="M 80 330 L 70 300 L 95 330 Z" fill="[PRIM]" stroke="[SKIN]" stroke-width="4"/><path d="M 120 330 L 130 300 L 105 330 Z" fill="[PRIM]" stroke="[SKIN]" stroke-width="4"/></g>` }, 
+            { id: 'p2', svg: `<g transform="translate(230, 250)"><rect x="0" y="0" width="60" height="40" rx="20" fill="[SEC]" stroke="[SKIN]" stroke-width="8"/><circle cx="15" cy="15" r="4" fill="#000"/><circle cx="45" cy="15" r="4" fill="#000"/><path d="M 20 25 Q 30 35 40 25" stroke="#000" stroke-width="4" fill="none"/><path d="M 0 20 C -20 20, -20 0, 0 0" stroke="#000" stroke-width="6" fill="none"/></g>` }, 
+            { id: 'p3', svg: `<g transform="translate(200, 30)"><ellipse cx="50" cy="50" rx="30" ry="20" fill="[PRIM]" stroke="[SKIN]" stroke-width="8"/><circle cx="40" cy="45" r="4" fill="#000"/><path d="M 15 50 L -10 50 L 15 60 Z" fill="[SEC]" stroke="[SKIN]" stroke-width="4"/><path d="M 60 40 L 80 20 L 70 50 Z" fill="[PRIM]" stroke="[SKIN]" stroke-width="4"/></g>` }, 
+            { id: 'p4', svg: `<g transform="translate(-20, 280)"><path d="M 0 100 Q 20 50 50 100 T 100 100" fill="none" stroke="[SEC]" stroke-width="16" stroke-linecap="round"/><circle cx="10" cy="95" r="4" fill="#000"/><path d="M 0 100 L -15 100 L -5 105" fill="#ef4444"/></g>` }, 
+            { id: 'p5', svg: `<g transform="translate(250, 50)"><circle cx="0" cy="0" r="30" fill="#fff" stroke="[SKIN]" stroke-width="8"/><circle cx="0" cy="0" r="12" fill="[SEC]"/><circle cx="0" cy="0" r="4" fill="#000"/></g>` }, 
+            { id: 'p6', svg: `<g transform="translate(230, 200) scale(0.4)"><path d="M 120 180 C 110 110, 280 110, 270 180 C 260 240, 130 240, 120 180 Z" fill="[SKIN]" stroke="#000" stroke-width="10"/><circle cx="165" cy="165" r="5" fill="#000" /><circle cx="215" cy="170" r="5" fill="#000" /><path d="M 180 195 Q 195 205 210 195" stroke="#000" stroke-width="10" fill="none" /><path d="M 195 240 L 205 380" stroke="#000" stroke-width="10" fill="none" /><path d="M 200 270 L 110 290 M 200 270 L 290 320" stroke="#000" stroke-width="10" fill="none" /></g>` }, 
+            { id: 'p7', svg: `<g transform="translate(220, 300)"><path d="M 0 60 C -10 20, 50 20, 40 60 C 20 50, 10 70, 0 60 Z" fill="[PRIM]" stroke="[SKIN]" stroke-width="6"/><circle cx="15" cy="45" r="2" fill="#000"/><circle cx="25" cy="45" r="2" fill="#000"/></g>` }, 
+            { id: 'p8', svg: `<g transform="translate(-70, 280)"><rect x="0" y="0" width="80" height="50" rx="10" fill="[SEC]" stroke="[SKIN]" stroke-width="6"/><circle cx="20" cy="20" r="4" fill="#000"/><circle cx="60" cy="20" r="4" fill="#000"/><path d="M 30 30 L 50 30" stroke="#000" stroke-width="4"/></g>` } 
+        ]
+    };
+
+    // --- 2. STATE MANAGEMENT ---
+    let currentTab = 'head';
+    let state = {
+        body: 'b0', face: 'f1', head: 'h0', item: 'i0', glasses: 'g0', pet: 'p0',
+        colors: { bg: '#e5e5e5', skin: '#000000', prim: '#595959', sec: '#bcbcbc' }
+    };
+
+    const previewContainer = document.getElementById('main-preview');
+    const optionsGrid = document.getElementById('options-grid');
+    const tabs = document.querySelectorAll('.tab');
+    const canvasBg = document.getElementById('canvas-bg');
+    const toolsPanel = document.getElementById('tools-panel');
+
+    // --- 3. MOBILE MENU LOGIC ---
+    let isMenuOpen = false;
+    
+    function openMobileMenu() {
+        if (window.innerWidth > 900) return;
+        isMenuOpen = true;
+        toolsPanel.classList.add('open');
+        document.getElementById('mobile-edit-btn').classList.add('hidden');
+    }
+
+    function closeMobileMenu() {
+        if (window.innerWidth > 900) return;
+        isMenuOpen = false;
+        toolsPanel.classList.remove('open');
+        document.getElementById('mobile-edit-btn').classList.remove('hidden');
+    }
+
+    // Close menu when clicking the canvas area
+    canvasBg.addEventListener('click', (e) => {
+        if (window.innerWidth <= 900 && isMenuOpen) {
+            // Do not close if they clicked the color controls, header, or edit button itself
+            if (!e.target.closest('.color-controls') && !e.target.closest('.header') && !e.target.closest('.mobile-edit-btn')) {
+                closeMobileMenu();
+            }
+        }
+    });
+
+    // Expand menu on tab click in mobile
+    tabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            if (window.innerWidth <= 900 && !isMenuOpen) {
+                openMobileMenu();
+            }
+            tabs.forEach(t => t.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+            currentTab = e.currentTarget.getAttribute('data-tab');
+            e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            renderGrid();
+        });
+    });
+
+    // --- 4. RENDERING ENGINE ---
+    function applyColors(svgStr) {
+        if (!svgStr) return '';
+        return svgStr
+            .replace(/\[SKIN\]/g, state.colors.skin)
+            .replace(/\[PRIM\]/g, state.colors.prim)
+            .replace(/\[SEC\]/g, state.colors.sec);
+    }
+
+    function getCombinedSVG(isThumb = false, thumbCategory = null, thumbId = null) {
+        const drawOrder = ['pet', 'body', 'baseHead', 'face', 'head', 'item', 'glasses'];
+        let innerContent = '';
+
+        drawOrder.forEach(category => {
+            if (category === 'baseHead') {
+                innerContent += applyColors(BASE_HEAD_SVG);
+            } else {
+                let selectedId = state[category];
+                if (isThumb && category === thumbCategory) {
+                    selectedId = thumbId;
+                }
+                const asset = rawAssets[category].find(a => a.id === selectedId);
+                if (asset && asset.svg) {
+                    innerContent += applyColors(asset.svg);
+                }
+            }
+        });
+
+        let viewBox = "-30 -40 460 500"; 
+        
+        if (isThumb) {
+            if (['face', 'glasses', 'item', 'head'].includes(thumbCategory)) viewBox = "80 20 230 230";
+            else if (thumbCategory === 'body') viewBox = "40 160 320 320";
+            else if (thumbCategory === 'pet') viewBox = "-20 -20 440 440";
+        }
+        
+        return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" width="100%" height="100%">
+                    ${innerContent}
+                </svg>`;
+    }
+
+    function updatePreview() {
+        canvasBg.style.backgroundColor = state.colors.bg;
+        const existingSvg = previewContainer.querySelector('svg');
+        if (existingSvg) existingSvg.remove();
+        previewContainer.insertAdjacentHTML('afterbegin', getCombinedSVG(false));
+    }
+
+    function renderGrid() {
+        optionsGrid.innerHTML = '';
+        const currentOptions = rawAssets[currentTab];
+
+        currentOptions.forEach((option, index) => {
+            const card = document.createElement('div');
+            card.className = `option-card ${state[currentTab] === option.id ? 'active' : ''}`;
+            
+            // Staggered pop-in animation
+            card.style.animation = `popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) ${index * 0.02}s both`;
+            
+            if (option.svg === '') {
+                card.innerHTML = `<span class="empty-icon"><i class="ph-bold ph-prohibit"></i></span>`;
+            } else {
+                card.innerHTML = getCombinedSVG(true, currentTab, option.id);
+            }
+
+            card.onclick = () => {
+                state[currentTab] = option.id;
+                renderGrid();
+                updatePreview();
+            };
+
+            optionsGrid.appendChild(card);
+        });
+    }
+
+    // --- 5. LOGIC & CONTROLS ---
+    function updateColors() {
+        state.colors.bg = document.getElementById('col-bg').value;
+        state.colors.skin = document.getElementById('col-skin').value;
+        state.colors.prim = document.getElementById('col-prim').value;
+        state.colors.sec = document.getElementById('col-sec').value;
+        renderGrid();
+        updatePreview();
+    }
+
+    function randomize() {
+        Object.keys(state).forEach(category => {
+            if (category !== 'colors') {
+                const options = rawAssets[category];
+                const randomAsset = options[Math.floor(Math.random() * options.length)];
+                state[category] = randomAsset.id;
+            }
+        });
+        
+        // Randomly select colors from the grayscale palette specifically to keep the theme
+        const palette = ['#e5e5e5', '#bcbcbc', '#8c8c8c', '#595959', '#000000'];
+        const rColor = () => palette[Math.floor(Math.random() * palette.length)];
+        
+        state.colors.bg = rColor();
+        state.colors.skin = rColor();
+        state.colors.prim = rColor();
+        state.colors.sec = rColor();
+        
+        // Avoid pure black on black
+        if (state.colors.bg === state.colors.skin && state.colors.bg === '#000000') {
+            state.colors.skin = '#e5e5e5';
+        }
+
+        document.getElementById('col-bg').value = state.colors.bg;
+        document.getElementById('col-skin').value = state.colors.skin;
+        document.getElementById('col-prim').value = state.colors.prim;
+        document.getElementById('col-sec').value = state.colors.sec;
+
+        renderGrid();
+        updatePreview();
+    }
+
+    function clearAvatar() {
+        state.body = 'b0'; state.face = 'f1'; state.head = 'h0'; state.item = 'i0'; state.glasses = 'g0'; state.pet = 'p0';
+        state.colors = { bg: '#e5e5e5', skin: '#000000', prim: '#595959', sec: '#bcbcbc' };
+        
+        document.getElementById('col-bg').value = state.colors.bg;
+        document.getElementById('col-skin').value = state.colors.skin;
+        document.getElementById('col-prim').value = state.colors.prim;
+        document.getElementById('col-sec').value = state.colors.sec;
+
+        renderGrid();
+        updatePreview();
+    }
+
+    function downloadPNG() {
+        const svgString = getCombinedSVG(false);
+        const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+        const URL = window.URL || window.webkitURL || window;
+        const blobURL = URL.createObjectURL(blob);
+        
+        const image = new Image();
+        image.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1200; canvas.height = 1200;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.fillStyle = state.colors.bg;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(image, 50, 50, 1100, 1100);
+            
+            const pngURL = canvas.toDataURL('image/png');
+            const downloadLink = document.createElement('a');
+            downloadLink.href = pngURL;
+            downloadLink.download = 'derp-masterpiece-monochrome.png';
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+            URL.revokeObjectURL(blobURL);
+        };
+        image.src = blobURL;
+    }
+
+    // Init values
+    document.getElementById('col-bg').value = state.colors.bg;
+    document.getElementById('col-skin').value = state.colors.skin;
+    document.getElementById('col-prim').value = state.colors.prim;
+    document.getElementById('col-sec').value = state.colors.sec;
+
+    updatePreview();
+    renderGrid();
+
+</script>
+</body>
+</html>
